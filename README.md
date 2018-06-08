@@ -8,7 +8,6 @@
 
 # @ssv/signalr-client
 [![CircleCI](https://circleci.com/gh/sketch7/signalr-client.svg?style=shield)](https://circleci.com/gh/sketch7/signalr-client)
-[![bitHound Overall Score](https://www.bithound.io/github/sketch7/signalr-client/badges/score.svg)](https://www.bithound.io/github/sketch7/signalr-client)
 [![npm version](https://badge.fury.io/js/%40ssv%2Fsignalr-client.svg)](https://badge.fury.io/js/%40ssv%2Fsignalr-client)
 
 SignalR client library built on top of ***@aspnet/signalr***. This gives you more features and easier to use.
@@ -34,7 +33,8 @@ SignalR client library built on top of ***@aspnet/signalr***. This gives you mor
 * Designed to be straight forward integrated with ***any framework*** such as *[Angular](#angular-adapter)*, *Aurelia*, *React*, *Vue*, etc...
 
 ## Samples
-* Real world example (***coming soon***):
+* Real world example (***under development***):
+    * Github: https://github.com/sketch7/orleans-heroes
     * Client: Angular
     * Server: Microsoft Orleans integrated with SignalR
 * [Angular basic example](#angular-basic-example)
@@ -102,12 +102,16 @@ export class HeroDetailComponent implements OnInit, OnDestroy {
 
 	private hubConnection: HubConnection<HeroHub>;
 	private hero$$: ISubscription;
+	private onConnected$$: ISubscription;
 
 	constructor(hubFactory: HubConnectionFactory) {
 		this.hubConnection = hubFactory.get<HeroHub>("hero");
 	}
 
 	ngOnInit(): void {
+		this.onConnected$$ = this.hubConnection.on<string>("UserConnected").subscribe(userId => {
+			console.log(` user connected '${userId}'`);
+		});
 		this.hero$$ = this.hubConnection.stream<Hero>("GetUpdates", "singed")
 		.subscribe(x => console.log(`hero stream :: singed :: update received`, x));
 	}
@@ -116,10 +120,14 @@ export class HeroDetailComponent implements OnInit, OnDestroy {
 		if (this.hero$$) {
 			this.hero$$.unsubscribe();
 		}
+		if (this.onConnected$$) {
+			this.onConnected$$.unsubscribe();
+		}
 	}
 }
 
 export interface HeroHub {
+	UserConnected: string;
 	GetUpdates: string;
 }
 
@@ -130,9 +138,11 @@ export interface Hero {
 }
 ```
 
-## RXJS - Previous Versions
+## RXJS - Previous Version
 Currently we are still maintaining `@ssv/signalr-client` with `rxjs v5.5.10`.
+
 `npm i @ssv/signalr-client@0.5.2`
+
 This is equivalent to the latest version.
 
 ### Contributions
